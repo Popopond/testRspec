@@ -10,14 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable curl libjemalloc2 libvips sqlite3
-        
-      - name: Install dependencies
-        run: |
-          bundle config set frozen false
-          bundle install
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -26,6 +18,14 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable curl libjemalloc2 libvips sqlite3
+        
+      - name: Install dependencies
+        run: |
+          bundle config set frozen false
+          bundle install
 
       - name: Run tests
         env:
@@ -39,7 +39,7 @@ jobs:
           ruby -e "
           require 'octokit'
 
-          passed = ENV['OUTCOME'] == 'success'
+          passed = $?.success?  # Use $? to check the exit status of the previous command (tests)
           comment = passed ? ':white_check_mark: All tests passed! :tada:' : ':x: Some tests failed. Please check the details.'
 
           pr_number = ENV['GITHUB_REF'].match(/refs\/pull\/(\d+)\/merge/)&.captures&.first
@@ -51,3 +51,5 @@ jobs:
             puts comment
           end
           "
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub's built-in token for authentication
