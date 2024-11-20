@@ -19,9 +19,6 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Install dependencies
-        run: bundle install
-
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
 
@@ -38,15 +35,11 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Install dependencies
-        run: bundle install
-
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
 
   lint:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -57,17 +50,20 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Install dependencies
-        run: bundle install
-
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
   test:
     runs-on: ubuntu-latest
 
+    # services:
+    #  redis:
+    #    image: redis
+    #    ports:
+    #      - 6379:6379
+    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - name: Install system dependencies
+      - name: Install packages
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable curl libjemalloc2 libvips sqlite3
 
       - name: Checkout code
@@ -79,16 +75,11 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Install dependencies
-        run: bundle install
-
-      - name: Prepare database for tests
-        run: bin/rails db:test:prepare
-
       - name: Run tests
         env:
           RAILS_ENV: test
-        run: bin/rails test test:system
+          # REDIS_URL: redis://localhost:6379/0
+        run: bin/rails db:test:prepare test test:system
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
@@ -97,25 +88,3 @@ jobs:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
-
-      - name: Post test result comment
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const passed = "${{ steps.run-tests.conclusion }}" === "success";
-            const comment = passed
-              ? ":white_check_mark: All tests passed! :tada:"
-              : ":x: Some tests failed. Please check the details.";
-
-            if (context.payload.pull_request) {
-              github.rest.issues.createComment({
-                issue_number: context.payload.pull_request.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: comment,
-              });
-            } else {
-              console.log(comment);
-            }
-    
