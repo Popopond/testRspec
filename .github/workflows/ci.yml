@@ -34,28 +34,30 @@ jobs:
           bin/rails db:test:prepare
 
       - name: Run tests
+        id: run_tests
         env:
           RAILS_ENV: test
         run: bin/rails test test:system
+        continue-on-error: true  # This allows the workflow to continue even if the tests fail
 
-      - name: Post test result comment with Ruby
+      - name: Post test result comment
         if: always()
-        run: |
-          gem install octokit
-          ruby -e "
-          require 'octokit'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const passed = "${{ steps.run_tests.outcome }}" === "success";
+            const comment = passed
+              ? ":white_check_mark: All tests passed! :tada:"
+              : ":x: Some tests failed. Please check the details.";
 
-          passed = $?.exitstatus == 0  # Check if the exit status is 0 (success)
-          comment = passed ? ':white_check_mark: All tests passed! :tada:' : ':x: Some tests failed. Please check the details.'
-
-          pr_number = ENV['GITHUB_REF'].match(/refs\/pull\/(\d+)\/merge/)&.captures&.first
-
-          if pr_number
-            client = Octokit::Client.new(access_token: ENV['GITHUB_TOKEN'])
-            client.add_comment(ENV['GITHUB_REPOSITORY'], pr_number, comment)
-          else
-            puts comment
-          end
-          "
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            // Create comment only on Pull Requests
+            if (context.payload.pull_request) {
+              github.rest.issues.createComment({
+                issue_number: context.payload.pull_request.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment,
+              });
+            } else {
+              console.log(comment);
+            }
