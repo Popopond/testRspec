@@ -37,13 +37,14 @@ jobs:
         uses: slackapi/slack-github-action@v1.22.0
         with:
           slack-message: '{"text": "Tests have passed! 🎉"}'
-          
-      
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
       - name: Send failure notification to Slack
         if: failure()
         uses: slackapi/slack-github-action@v1.22.0
         with:
           slack-message: '{"text": "Tests have failed! 😢"}'
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
@@ -52,4 +53,3 @@ jobs:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
-
