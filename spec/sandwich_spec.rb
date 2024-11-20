@@ -1,8 +1,8 @@
 Sandwich = Struct.new(:taste, :toppings)
 
-describe 'Sandwich' do 
-    let(:sandwich){Sandwich.new('delicious',[])}
-    # def sandwich 
+describe 'Sandwich' do
+    let(:sandwich) { Sandwich.new('delicious', []) }
+    # def sandwich
     #     @sandwich ||= Sandwich.new('delicious', [])
     # end
 
@@ -13,6 +13,6 @@ describe 'Sandwich' do
     it 'has toppings' do
         sandwich.toppings << 'cheese'
         toppings = sandwich.toppings
-        expect(toppings).not_to be_empty 
+        expect(toppings).not_to be_empty
     end
 end
