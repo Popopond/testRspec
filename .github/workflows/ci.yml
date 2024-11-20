@@ -36,15 +36,14 @@ jobs:
         if: success()
         uses: slackapi/slack-github-action@v1.22.0
         with:
-          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          text: 'Tests have passed! 🎉'
-
+          slack-message: '{"text": "Tests have passed! 🎉"}'
+          
+      
       - name: Send failure notification to Slack
         if: failure()
         uses: slackapi/slack-github-action@v1.22.0
         with:
-          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          text: 'Tests have failed! 😢'
+          slack-message: '{"text": "Tests have failed! 😢"}'
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
