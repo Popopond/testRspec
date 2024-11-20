@@ -27,10 +27,16 @@ jobs:
           bundle config set frozen false
           bundle install
 
+      - name: Setup Database
+        run: |
+          bin/rails db:create
+          bin/rails db:migrate
+          bin/rails db:test:prepare
+
       - name: Run tests
         env:
           RAILS_ENV: test
-        run: bin/rails db:test:prepare test test:system
+        run: bin/rails test test:system
 
       - name: Post test result comment with Ruby
         if: always()
