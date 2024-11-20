@@ -21,7 +21,7 @@ jobs:
 
       - name: Install packages
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable curl libjemalloc2 libvips sqlite3
-        
+
       - name: Install dependencies
         run: |
           bundle config set frozen false
